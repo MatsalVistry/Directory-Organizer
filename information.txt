@@ -1,2 +1,4 @@
-C:\Users\Vatsal\Desktop
-a
+C:\Users\Vatsal\Downloads
+Pdf,.pdf
+images,.png
+zips,.zip

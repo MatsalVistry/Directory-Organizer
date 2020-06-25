@@ -3,9 +3,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Scanner;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,6 +15,7 @@ public class main
         Scanner keyboard = new Scanner(System.in);
         System.out.print("Would you like to use previous settings?(y/n): ");
         String ans = keyboard.next();
+        boolean extra = false;
 
         if(ans.equals("n"))
         {
@@ -26,81 +25,87 @@ public class main
             System.out.print("Enter the new Directory: ");
             ans = keyboard.next();
             myWriter.write(ans+"\n");
+
+            while(true)
+            {
+                System.out.print("\nEnter a Folder Name(type done to exit): ");
+                ans = keyboard.next();
+                if(!ans.equals("done"))
+                {
+                    myWriter.write(ans+",");
+                    System.out.print("Enter file extension(including the .) :");
+                    myWriter.write(keyboard.next()+"\n");
+                }
+                else
+                    break;
+            }
+
             myWriter.close();
         }
-
+        System.out.print("Would you like to place any remaining files in a separate folder?(y/n):");
+        if(keyboard.next().toLowerCase().equals("y"))
+            extra = true;
         Scanner sc = new Scanner(f);
 
         String path = sc.nextLine();
         path = path.replaceAll(Pattern.quote("\\"),  Matcher.quoteReplacement("\\\\"));
         System.out.println(path);
 
-        new File(path+"\\Pdf").mkdir();
-        new File(path+"\\Text Files").mkdir();
-        new File(path+"\\Images").mkdir();
-        new File(path+"\\Word Documents").mkdir();
+        HashMap<String,String> extensions = new HashMap<>();
+        while(sc.hasNextLine())
+        {
+            String [] line = sc.nextLine().split(",");
+            new File(path+"\\"+line[0]).mkdir();
+            extensions.put(line[1],line[0]);
+        }
+        if(extra)
+        {
+            new File(path+"\\Extras").mkdir();
+        }
 
         f = new File(path+"\\");
         ArrayList<String> names = new ArrayList<>(Arrays.asList(f.list()));
         ArrayList<File> files = new ArrayList<>(Arrays.asList(f.listFiles()));
-        for(int x=0;x<names.size();x++)
+
+        if(names!=null)
         {
-            System.out.println(names.get(x)+"    "+files.get(x));
-            if(names.get(x).toLowerCase().endsWith(".jpg"))
+            for (int x = 0; x < names.size(); x++)
             {
-                String dir = ""+files.get(x);
-                dir = dir.replaceAll(Pattern.quote("\\"),  Matcher.quoteReplacement("\\\\"));
-                String [] arr = dir.split("\\\\");
-                String newDir = "";
-                for(int y=0;y<arr.length-1;y++)
+                System.out.println(names.get(x) + "    " + files.get(x));
+                boolean status = false;
+                for(String key : extensions.keySet())
                 {
-                    newDir+=arr[y]+"\\";
+                    if (names.get(x).toLowerCase().endsWith(key))
+                    {
+                        String dir = "" + files.get(x);
+                        dir = dir.replaceAll(Pattern.quote("\\"), Matcher.quoteReplacement("\\\\"));
+                        String[] arr = dir.split("\\\\");
+                        String newDir = "";
+                        for (int y = 0; y < arr.length - 1; y++)
+                        {
+                            newDir += arr[y] + "\\";
+                        }
+                        newDir += extensions.get(key)+"\\\\" + arr[arr.length - 1];
+                        System.out.println(newDir);
+                        files.get(x).renameTo(new File(newDir));
+                        status = true;
+                        break;
+                    }
                 }
-                newDir+="Images\\\\"+arr[arr.length-1];
-                System.out.println(newDir);
-                files.get(x).renameTo(new File(newDir));
-            }
-            else if(names.get(x).toLowerCase().endsWith(".pdf"))
-            {
-                String dir = ""+files.get(x);
-                dir = dir.replaceAll(Pattern.quote("\\"),  Matcher.quoteReplacement("\\\\"));
-                String [] arr = dir.split("\\\\");
-                String newDir = "";
-                for(int y=0;y<arr.length-1;y++)
+                if(extra && !status && names.get(x).contains("."))
                 {
-                    newDir+=arr[y]+"\\";
+                    String dir = "" + files.get(x);
+                    dir = dir.replaceAll(Pattern.quote("\\"), Matcher.quoteReplacement("\\\\"));
+                    String[] arr = dir.split("\\\\");
+                    String newDir = "";
+                    for (int y = 0; y < arr.length - 1; y++)
+                    {
+                        newDir += arr[y] + "\\";
+                    }
+                    newDir += "Extras\\\\" + arr[arr.length - 1];
+                    System.out.println(newDir);
+                    files.get(x).renameTo(new File(newDir));
                 }
-                newDir+="Pdf\\\\"+arr[arr.length-1];
-                System.out.println(newDir);
-                files.get(x).renameTo(new File(newDir));
-            }
-            else if(names.get(x).toLowerCase().endsWith(".txt"))
-            {
-                String dir = ""+files.get(x);
-                dir = dir.replaceAll(Pattern.quote("\\"),  Matcher.quoteReplacement("\\\\"));
-                String [] arr = dir.split("\\\\");
-                String newDir = "";
-                for(int y=0;y<arr.length-1;y++)
-                {
-                    newDir+=arr[y]+"\\";
-                }
-                newDir+="Text Files\\\\"+arr[arr.length-1];
-                System.out.println(newDir);
-                files.get(x).renameTo(new File(newDir));
-            }
-            else if(names.get(x).toLowerCase().endsWith(".doc") || names.get(x).toLowerCase().endsWith(".docx"))
-            {
-                String dir = ""+files.get(x);
-                dir = dir.replaceAll(Pattern.quote("\\"),  Matcher.quoteReplacement("\\\\"));
-                String [] arr = dir.split("\\\\");
-                String newDir = "";
-                for(int y=0;y<arr.length-1;y++)
-                {
-                    newDir+=arr[y]+"\\";
-                }
-                newDir+="Word Documents\\\\"+arr[arr.length-1];
-                System.out.println(newDir);
-                files.get(x).renameTo(new File(newDir));
             }
         }
     }
