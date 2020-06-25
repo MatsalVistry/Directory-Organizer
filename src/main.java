@@ -92,7 +92,7 @@ public class main
                         break;
                     }
                 }
-                if(extra && !status && names.get(x).contains("."))
+                if(extra && !status && !files.get(x).isDirectory())
                 {
                     String dir = "" + files.get(x);
                     dir = dir.replaceAll(Pattern.quote("\\"), Matcher.quoteReplacement("\\\\"));
